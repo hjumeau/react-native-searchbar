@@ -203,10 +203,11 @@ export default class Search extends Component {
       backButtonAccessibilityLabel,
       closeButton,
       closeButtonAccessibilityLabel,
-      backCloseSize
+      backCloseSize,
+      style
     } = this.props;
     return (
-      <Animated.View style={[styles.container, { top: this.state.top }]}>
+      <Animated.View style={[styles.container, { top: this.state.top }, style]}>
         {
         this.state.show &&
         <View style={[styles.navWrapper, { backgroundColor }]} >
