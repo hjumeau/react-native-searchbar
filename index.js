@@ -49,6 +49,7 @@ export default class Search extends Component {
     autoCapitalize: PropTypes.string,
     fontFamily: PropTypes.string,
     allDataOnEmptySearch: PropTypes.bool,
+    style: PropTypes.object
   }
 
   static defaultProps = {
