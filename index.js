@@ -57,7 +57,7 @@ export default class Search extends Component {
     keyboardType: PropTypes.string,
     fontFamily: PropTypes.string,
     allDataOnEmptySearch: PropTypes.bool,
-    editable: PropTypes.bool
+    editable: PropTypes.bool,
     style: PropTypes.object
   };
 
