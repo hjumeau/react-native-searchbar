@@ -1,4 +1,4 @@
-import React, { Component, PropTypes } from 'react';
+import React, { Component } from 'react';
 import {
   StyleSheet,
   Dimensions,
@@ -6,8 +6,9 @@ import {
   View,
   TextInput,
   TouchableOpacity,
-  Animated,
+  Animated
 } from 'react-native';
+import PropTypes from 'prop-types';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { filter, some, includes } from 'lodash/collection';
 import { debounce } from 'lodash/function';
@@ -15,7 +16,6 @@ import { debounce } from 'lodash/function';
 const INITIAL_TOP = Platform.OS === 'ios' ? -80 : -60;
 
 export default class Search extends Component {
-
   static propTypes = {
     data: PropTypes.array,
     placeholder: PropTypes.string,
@@ -24,17 +24,21 @@ export default class Search extends Component {
     handleResults: PropTypes.func,
     onSubmitEditing: PropTypes.func,
     onFocus: PropTypes.func,
+    onBlur: PropTypes.func,
     onHide: PropTypes.func,
     onBack: PropTypes.func,
+    onX: PropTypes.func,
     backButton: PropTypes.object,
     backButtonAccessibilityLabel: PropTypes.string,
     closeButton: PropTypes.object,
     closeButtonAccessibilityLabel: PropTypes.string,
     backCloseSize: PropTypes.number,
+    fontSize: PropTypes.number,
     heightAdjust: PropTypes.number,
     backgroundColor: PropTypes.string,
     iconColor: PropTypes.string,
     textColor: PropTypes.string,
+    selectionColor: PropTypes.string,
     placeholderTextColor: PropTypes.string,
     animate: PropTypes.bool,
     animationDuration: PropTypes.number,
@@ -42,15 +46,20 @@ export default class Search extends Component {
     hideBack: PropTypes.bool,
     hideX: PropTypes.bool,
     iOSPadding: PropTypes.bool,
+    iOSHideShadow: PropTypes.bool,
     clearOnShow: PropTypes.bool,
     clearOnHide: PropTypes.bool,
+    clearOnBlur: PropTypes.bool,
     focusOnLayout: PropTypes.bool,
     autoCorrect: PropTypes.bool,
     autoCapitalize: PropTypes.string,
+    keyboardAppearance: PropTypes.string,
+    keyboardType: PropTypes.string,
     fontFamily: PropTypes.string,
     allDataOnEmptySearch: PropTypes.bool,
+    editable: PropTypes.bool
     style: PropTypes.object
-  }
+  };
 
   static defaultProps = {
     data: [],
@@ -61,6 +70,7 @@ export default class Search extends Component {
     backgroundColor: 'white',
     iconColor: 'gray',
     textColor: 'gray',
+    selectionColor: 'lightskyblue',
     placeholderTextColor: 'lightgray',
     animate: true,
     animationDuration: 200,
@@ -68,28 +78,35 @@ export default class Search extends Component {
     hideBack: false,
     hideX: false,
     iOSPadding: true,
+    iOSHideShadow: false,
     clearOnShow: false,
     clearOnHide: true,
+    clearOnBlur: false,
     focusOnLayout: true,
     autoCorrect: true,
     autoCapitalize: 'sentences',
+    keyboardAppearance: 'default',
     fontFamily: 'System',
     allDataOnEmptySearch: false,
-    backCloseSize: 28
-  }
+    backCloseSize: 28,
+    fontSize: 20,
+    editable: true
+  };
 
   constructor(props) {
     super(props);
     this.state = {
       input: '',
       show: props.showOnLoad,
-      top: new Animated.Value(props.showOnLoad ? 0 : INITIAL_TOP + props.heightAdjust),
+      top: new Animated.Value(
+        props.showOnLoad ? 0 : INITIAL_TOP + props.heightAdjust
+      )
     };
   }
 
   getValue = () => {
     return this.state.input;
-  }
+  };
 
   show = () => {
     const { animate, animationDuration, clearOnShow } = this.props;
@@ -98,16 +115,14 @@ export default class Search extends Component {
     }
     this.setState({ show: true });
     if (animate) {
-      Animated.timing(
-        this.state.top, {
-            toValue: 0,
-            duration: animationDuration,
-        }
-      ).start();
+      Animated.timing(this.state.top, {
+        toValue: 0,
+        duration: animationDuration
+      }).start();
     } else {
       this.setState({ top: new Animated.Value(0) });
     }
-  }
+  };
 
   hide = () => {
     const { onHide, animate, animationDuration } = this.props;
@@ -115,20 +130,19 @@ export default class Search extends Component {
       onHide(this.state.input);
     }
     if (animate) {
-      Animated.timing(
-        this.state.top, {
-            toValue: INITIAL_TOP,
-            duration: animationDuration,
-        }
-      ).start();
-      setTimeout(() => {
+      Animated.timing(this.state.top, {
+        toValue: INITIAL_TOP,
+        duration: animationDuration
+      }).start();
+      const timerId = setTimeout(() => {
         this._doHide();
+        clearTimeout(timerId);
       }, animationDuration);
     } else {
-      this.setState({ top: new Animated.Value(INITIAL_TOP) })
-      this._doHide()
+      this.setState({ top: new Animated.Value(INITIAL_TOP) });
+      this._doHide();
     }
-  }
+  };
 
   _doHide = () => {
     const { clearOnHide } = this.props;
@@ -136,9 +150,30 @@ export default class Search extends Component {
     if (clearOnHide) {
       this.setState({ input: '' });
     }
-  }
+  };
 
-  _onChangeText = (input) => {
+  _handleX = () => {
+    const { onX } = this.props;
+    this._clearInput();
+    if (onX) onX();
+  };
+
+  _handleBlur = () => {
+    const { onBlur, clearOnBlur } = this.props;
+    if (onBlur) {
+      onBlur();
+    }
+    if (clearOnBlur) {
+      this._clearInput();
+    }
+  };
+
+  _clearInput = () => {
+    this.setState({ input: '' });
+    this._onChangeText('');
+  };
+
+  _onChangeText = input => {
     const { handleChangeText, handleSearch, handleResults } = this.props;
     this.setState({ input });
     if (handleChangeText) {
@@ -155,32 +190,30 @@ export default class Search extends Component {
         }
       }, 500)();
     }
-  }
+  };
 
-  _internalSearch = (input) => {
+  _internalSearch = input => {
     const { data, allDataOnEmptySearch } = this.props;
     if (input === '') {
       return allDataOnEmptySearch ? data : [];
     }
-    return filter(data, (item) => {
+    return filter(data, item => {
       return this._depthFirstSearch(item, input);
     });
-  }
+  };
 
   _depthFirstSearch = (collection, input) => {
     // let's get recursive boi
     let type = typeof collection;
     // base case(s)
     if (type === 'string' || type === 'number' || type === 'boolean') {
-      return includes(collection.toString().toLowerCase(), input.toString().toLowerCase());
+      return includes(
+        collection.toString().toLowerCase(),
+        input.toString().toLowerCase()
+      );
     }
-    return some(collection, (item) => this._depthFirstSearch(item, input));
-  }
-
-  _clearInput = () => {
-    this.setState({ input: '' });
-    this._onChangeText('');
-  }
+    return some(collection, item => this._depthFirstSearch(item, input));
+  };
 
   render = () => {
     const {
@@ -189,106 +222,133 @@ export default class Search extends Component {
       backgroundColor,
       iconColor,
       textColor,
+      selectionColor,
       placeholderTextColor,
       onBack,
       hideBack,
       hideX,
       iOSPadding,
+      iOSHideShadow,
       onSubmitEditing,
       onFocus,
       focusOnLayout,
       autoCorrect,
       autoCapitalize,
+      keyboardAppearance,
       fontFamily,
       backButton,
       backButtonAccessibilityLabel,
       closeButton,
       closeButtonAccessibilityLabel,
       backCloseSize,
+      fontSize,
+      editable,
+      keyboardType,
       style
     } = this.props;
     return (
-      <Animated.View style={[styles.container, { top: this.state.top }, style]}>
-        {
-        this.state.show &&
-        <View style={[styles.navWrapper, { backgroundColor }]} >
+      <Animated.View
+        style={[
+          styles.container,
           {
-            Platform.OS === 'ios' && iOSPadding &&
-            <View style={{ height: 20 }} />
-          }
-          <View style={[
-              styles.nav,
-              { height: (Platform.OS === 'ios' ? 52 : 62) + heightAdjust },
-            ]}
-          >
-          {
-            !hideBack &&
-            <TouchableOpacity
-              accessible={true}
-              accessibilityComponentType="button"
-              accessibilityLabel={backButtonAccessibilityLabel}
-              onPress={onBack || this.hide}>
-              {
-              backButton ?
-              <View style={{width: backCloseSize, height: backCloseSize}} >{backButton}</View>
-              :
-              <Icon
-                name='arrow-back'
-                size={backCloseSize}
-                style={{
-                  color: iconColor,
-                  padding: heightAdjust / 2 + 10
-                }}
-              />
-              }
-            </TouchableOpacity>
-          }
-            <TextInput
-              ref={(ref) => this.textInput = ref}
-              onLayout={() => focusOnLayout && this.textInput.focus()}
+            top: this.state.top,
+            shadowOpacity: iOSHideShadow ? 0 : 0.7
+          },
+          style
+        ]}>
+        {this.state.show && (
+          <View style={[styles.navWrapper, { backgroundColor }]}>
+            {Platform.OS === 'ios' &&
+              iOSPadding && <View style={{ height: 20 }} />}
+            <View
               style={[
-                styles.input,
-                {
-                  color: textColor, fontFamily: fontFamily, marginLeft: hideBack ? 30 : 0,
-                  marginTop: (Platform.OS === 'ios' ? heightAdjust / 2 + 10 : 0)
-                }
-              ]}
-              onChangeText={(input) => this._onChangeText(input)}
-              onSubmitEditing={() => onSubmitEditing ? onSubmitEditing() : null}
-              onFocus={() => onFocus ? onFocus() : null}
-              placeholder={placeholder}
-              placeholderTextColor={placeholderTextColor}
-              value={this.state.input}
-              underlineColorAndroid='transparent'
-              returnKeyType='search'
-              autoCorrect={autoCorrect}
-              autoCapitalize={autoCapitalize}
-            />
-            <TouchableOpacity
-              accessible={true}
-              accessibilityComponentType="button"
-              accessibilityLabel={closeButtonAccessibilityLabel}
-              onPress={hideX || this.state.input === '' ? null : this._clearInput}>
-              {
-              closeButton ?
-              <View style={{width: backCloseSize, height: backCloseSize}} >{closeButton}</View>
-              :
-              <Icon
-                name={'close'}
-                size={backCloseSize}
-                style={{
-                  color: hideX || this.state.input == '' ? backgroundColor : iconColor,
-                  padding: heightAdjust / 2 + 10
-                }}
+                styles.nav,
+                { height: (Platform.OS === 'ios' ? 52 : 62) + heightAdjust }
+              ]}>
+              {!hideBack && (
+                <TouchableOpacity
+                  accessible={true}
+                  accessibilityComponentType="button"
+                  accessibilityLabel={backButtonAccessibilityLabel}
+                  onPress={onBack || this.hide}>
+                  {backButton ? (
+                    <View
+                      style={{ width: backCloseSize, height: backCloseSize }}>
+                      {backButton}
+                    </View>
+                  ) : (
+                    <Icon
+                      name="arrow-back"
+                      size={backCloseSize}
+                      style={{
+                        color: iconColor,
+                        padding: heightAdjust / 2 + 10
+                      }}
+                    />
+                  )}
+                </TouchableOpacity>
+              )}
+              <TextInput
+                ref={ref => (this.textInput = ref)}
+                onLayout={() => focusOnLayout && this.textInput.focus()}
+                style={[
+                  styles.input,
+                  {
+                    fontSize: fontSize,
+                    color: textColor,
+                    fontFamily: fontFamily,
+                    marginLeft: hideBack ? 30 : 0,
+                    marginTop: Platform.OS === 'ios' ? heightAdjust / 2 + 10 : 0
+                  }
+                ]}
+                selectionColor={selectionColor}
+                onChangeText={input => this._onChangeText(input)}
+                onSubmitEditing={() =>
+                  onSubmitEditing ? onSubmitEditing() : null}
+                onFocus={() => (onFocus ? onFocus() : null)}
+                onBlur={this._handleBlur}
+                placeholder={placeholder}
+                placeholderTextColor={placeholderTextColor}
+                value={this.state.input}
+                underlineColorAndroid="transparent"
+                returnKeyType="search"
+                autoCorrect={autoCorrect}
+                autoCapitalize={autoCapitalize}
+                keyboardType={keyboardType || "default"}
+                keyboardAppearance={keyboardAppearance}
+                editable={editable}
               />
-              }
-            </TouchableOpacity>
+              <TouchableOpacity
+                accessible={true}
+                accessibilityComponentType="button"
+                accessibilityLabel={closeButtonAccessibilityLabel}
+                onPress={
+                  hideX || this.state.input === '' ? null : this._handleX
+                }>
+                {closeButton ? (
+                  <View style={{ width: backCloseSize, height: backCloseSize }}>
+                    {closeButton}
+                  </View>
+                ) : (
+                  <Icon
+                    name={'close'}
+                    size={backCloseSize}
+                    style={{
+                      color:
+                        hideX || this.state.input == ''
+                          ? backgroundColor
+                          : iconColor,
+                      padding: heightAdjust / 2 + 10
+                    }}
+                  />
+                )}
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
-        }
+        )}
       </Animated.View>
     );
-  }
+  };
 }
 
 const styles = StyleSheet.create({
@@ -296,32 +356,30 @@ const styles = StyleSheet.create({
     flex: 1,
     zIndex: 10,
     position: 'absolute',
-    shadowRadius: 5,
-    shadowOpacity: 0.7,
     elevation: 2,
+    shadowRadius: 5
   },
   navWrapper: {
-    width: Dimensions.get('window').width,
+    width: Dimensions.get('window').width
   },
   nav: {
     ...Platform.select({
-        android: {
-          borderBottomColor: 'lightgray',
-          borderBottomWidth: StyleSheet.hairlineWidth,
-        },
+      android: {
+        borderBottomColor: 'lightgray',
+        borderBottomWidth: StyleSheet.hairlineWidth
+      }
     }),
     flex: 1,
     flexBasis: 1,
     flexDirection: 'row',
     justifyContent: 'space-around',
-    alignItems: 'center',
+    alignItems: 'center'
   },
   input: {
     ...Platform.select({
-        ios: { height: 30 },
-        android: { height: 50 },
+      ios: { height: 30 },
+      android: { height: 50 }
     }),
-    width: Dimensions.get('window').width - 120,
-    fontSize: 20,
+    width: Dimensions.get('window').width - 120
   }
 });

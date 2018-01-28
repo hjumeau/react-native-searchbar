@@ -1,19 +1,24 @@
 {
   "name": "react-native-searchbar",
-  "version": "1.8.0",
+  "version": "1.13.0",
   "description": "A pretty awesome search bar for React Native",
   "keywords": [
-  "react-native",
-  "search",
-  "bar",
-  "searchbar",
-  "animated",
-  "ios",
-  "android"
-],
+    "react-native",
+    "search",
+    "bar",
+    "searchbar",
+    "animated",
+    "ios",
+    "android"
+  ],
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no tests specified\" && exit 1"
+    "fix": "npm run lint -- --fix && npm run prettier",
+    "lint": "eslint index.js",
+    "prepublishOnly": "npm run test",
+    "prettier": "prettier --config .prettierrc --write 'index.js'",
+    "prettier:diff": "prettier --config .prettierrc --list-different 'index.js'",
+    "test": "npm run lint && npm run prettier:diff"
   },
   "author": {
     "name": "Dave Olsen",
@@ -30,7 +35,31 @@
   },
   "homepage": "https://github.com/localz/react-native-searchbar#readme",
   "dependencies": {
-    "react-native-vector-icons": "^3.0.0",
-    "lodash": "^4.16.4"
+    "lodash": "^4.16.4",
+    "react-native-vector-icons": "^4.4.2"
+  },
+  "devDependencies": {
+    "babel-eslint": "^8.0.1",
+    "eslint": "^4.8.0",
+    "eslint-config-react": "^1.1.7",
+    "eslint-plugin-prettier": "^2.3.1",
+    "eslint-plugin-react": "^7.4.0",
+    "eslint-plugin-react-native": "^3.1.0",
+    "prettier": "^1.7.4",
+    "prop-types": "^15.5.10"
+  },
+  "eslintConfig": {
+    "extends": [
+      "plugin:react-native/all"
+    ],
+    "plugins": [
+      "prettier",
+      "react",
+      "react-native"
+    ],
+    "parser": "babel-eslint",
+    "rules": {
+      "react-native/no-inline-styles": 0
+    }
   }
 }

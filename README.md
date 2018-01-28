@@ -29,7 +29,9 @@ onSubmitEditing | function | `null` | Fired after pressing 'search' on the devic
 getValue | function | `null` | Returns the current value of the search bar input.
 onHide(input) | function | `null` | Fires when the search bar is hidden with the current user input.
 onBack | function | Hides the search bar | Fires when the back icon is pressed.
+onX | function | `null` | Fires when the X button is pressed. Still clears the input.
 onFocus | function | `null` | Fires when the search bar receives focus.
+onBlur | function | `null` | Fires when the search bar loses focus.
 backButton | Component | MaterialIcon | Sets the back button component.
 backButtonAccessibilityLabel | string| `Navigate up` | Accessibility label for the back button.
 closeButton | Component | MaterialIcon | Sets the close button component.
@@ -39,19 +41,24 @@ heightAdjust | number | `0` | Adjust the height of the search bar.
 backgroundColor | string | `white` | The background colour of the search bar.
 iconColor | string | `gray` | The color of the back and X icons.
 textColor | string | `gray` | The color of the search bar text.
+selectionColor | string | `lightskyblue` | The color of the the search bar cursor and text selection.
 placeholderTextColor | string | `lightgray` | The color of the placeholder text.
 animate | boolean | `true` | Animate the search bar when it is shown and hidden.
 animationDuration | number | `200` | The duration of the above animation in milliseconds.
 showOnLoad | boolean | `false` | Show the search bar when it is first rendered.
 hideBack | boolean | `false` | Hide the back button.
 hideX | boolean | `false` | Hide the X icon which clears the input.
-iOSPadding | boolean | `true` | Pad the size of the iOS status bar
+iOSPadding | boolean | `true` | Pad the size of the iOS status bar.
+iOSHideShadow | boolean | `false` | Hide the shadow under the search bar in iOS.
 clearOnShow | boolean | `false` | Clear input when the search bar is shown.
 clearOnHide | boolean | `true` | Clear input when the search bar is hidden.
+clearOnBlur | boolean | `false` | Clear input when the search bar is blurred.
 focusOnLayout | boolean | `true` | Focus the text input box whenever it is shown.
 autoCorrect | boolean | `true` | AutoCorrect the search bar text.
 autoCapitalize | string | `sentences` | Auto capitialize behaviour of the text input - enum('none', 'sentences', 'words', 'characters')
-fontFamily | string | `System` | The font family to be used
+keyboardAppearance | string | 'default' | Determines the color of the keyboard.
+fontFamily | string | `System` | The font family to be used.
+fontSize | number | 20 | Sets the font size.
 allDataOnEmptySearch | boolean | `false` | Search results behave as a `.filter`, returning all data when the input is an empty string.
 
 
@@ -119,3 +126,25 @@ _handleResults(results) {
 />
 ...
 ```
+
+## Contributing
+
+Contributing to `react-native-searchbar` is easy! With four simple steps:
+
+### Create a branch
+
+1. Fork the repository
+1. `git clone <your-repo-url>` to clone your GitHub repo to your local one
+1. `git pull origin master` to pull the latest code
+1. `npm install` to install the project's dependencies
+1. `git checkout -b the-name-of-my-branch` to create a branch (use something short and comprehensible, such as: `fix-styling-of-search-bar`).
+  
+### Make the change
+
+### Test the change
+1. Run `npm run fix` from the project root (This will run Prettier and ESLint and automatically fix any issues).
+1. If possible, test any visual changes in Android and iOS.
+
+### Push the change!
+1. `git add -A && git commit -m "My message"` (replacing `My message` with a commit message, such as `Fixed styling on search bar`) to stage and commit your changes
+1. `git push my-fork-name the-name-of-my-branch`
